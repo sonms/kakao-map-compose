@@ -1,10 +1,17 @@
+import java.util.Properties
+import kotlin.apply
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
 
+val properties = Properties().apply {
+    load(project.rootProject.file("local.properties").inputStream())
+}
+
 android {
-    namespace = "com.sonms.kakao_map_compose"
+    namespace = "com.sonms.kakao.maps.open.map.compose.sample"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,13 +19,17 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.sonms.kakao_map_compose"
+        applicationId = "com.sonms.kakao.maps.open.map.compose"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "KAKAO_NATIVE_KEY", properties["kakao.native.key"].toString())
+
+        manifestPlaceholders["KAKAO_NATIVE_KEY"] = properties["kakao.native.key"].toString()
     }
 
     buildTypes {
@@ -36,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -48,6 +60,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(project(":kakao-map-compose"))
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
