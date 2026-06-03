@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="40dp"
+    android:viewportWidth="32"
+    android:viewportHeight="40">
+    <!-- pin body -->
+    <path
+        android:fillColor="#FF3B30"
+        android:pathData="M16,0C9.373,0 4,5.373 4,12c0,9 12,28 12,28s12,-19 12,-28C28,5.373 22.627,0 16,0z"/>
+    <!-- pin inner circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,16m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
+</vector>

@@ -5,43 +5,30 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.kakao.vectormap.KakaoMapSdk
+import com.sonms.kakao.maps.open.map.compose.sample.BuildConfig
 import com.sonms.kakao.maps.open.map.compose.ui.theme.KakaomapcomposeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        KakaoMapSdk.init(this, BuildConfig.KAKAO_NATIVE_KEY)
         enableEdgeToEdge()
         setContent {
             KakaomapcomposeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                KakaoMap(modifier = Modifier.fillMaxSize()) {
+                    KakaoPoi(position = KakaoLatLng.from(37.5665, 126.9780))
+                    KakaoPoi(position = KakaoLatLng.from(37.5700, 126.9820))
+                    KakaoPoi(
+                        position = KakaoLatLng.from(37.3947, 127.1112),
+                        onClick = {
+                            it.moveTo(KakaoLatLng.from(37.5665, 126.9780).toLatLng())
+                            true
+                        }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    KakaomapcomposeTheme {
-        Greeting("Android")
     }
 }
