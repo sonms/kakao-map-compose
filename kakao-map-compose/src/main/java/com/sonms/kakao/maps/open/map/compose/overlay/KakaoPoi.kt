@@ -1,4 +1,4 @@
-package com.sonms.kakao.maps.open.map.compose
+package com.sonms.kakao.maps.open.map.compose.overlay
 
 import android.content.Context
 import androidx.annotation.DrawableRes
@@ -16,6 +16,10 @@ import androidx.core.graphics.drawable.toBitmap
 import com.kakao.vectormap.label.Label
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
+import com.sonms.kakao.maps.open.map.compose.R
+import com.sonms.kakao.maps.open.map.compose.core.KakaoMapComposable
+import com.sonms.kakao.maps.open.map.compose.core.LocalKakaoMapState
+import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
 
 /**
  * 카카오 지도 위에 POI(Label)를 표시하는 Composable입니다.

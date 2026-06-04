@@ -1,4 +1,4 @@
-package com.sonms.kakao.maps.open.map.compose
+package com.sonms.kakao.maps.open.map.compose.core
 
 import androidx.compose.runtime.ComposableTargetMarker
 

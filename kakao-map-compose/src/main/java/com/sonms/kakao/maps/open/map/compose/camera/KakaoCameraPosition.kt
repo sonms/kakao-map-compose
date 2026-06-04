@@ -1,7 +1,8 @@
-package com.sonms.kakao.maps.open.map.compose
+package com.sonms.kakao.maps.open.map.compose.camera
 
 import androidx.compose.runtime.Immutable
 import com.kakao.vectormap.camera.CameraPosition
+import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
 
 /**
  * Compose 안정성 추론을 위해 사용하는 카메라 위치 값 객체입니다.
@@ -39,7 +40,7 @@ data class KakaoCameraPosition(
          * @param cameraPosition 변환할 SDK 카메라 위치 객체입니다.
          */
         fun from(cameraPosition: CameraPosition): KakaoCameraPosition = KakaoCameraPosition(
-            target = KakaoLatLng.from(cameraPosition.position),
+            target = KakaoLatLng.Companion.from(cameraPosition.position),
             zoomLevel = cameraPosition.zoomLevel,
             tiltAngle = cameraPosition.tiltAngle,
             rotationAngle = cameraPosition.rotationAngle,

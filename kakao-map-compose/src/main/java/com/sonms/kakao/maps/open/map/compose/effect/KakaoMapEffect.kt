@@ -1,4 +1,4 @@
-package com.sonms.kakao.maps.open.map.compose
+package com.sonms.kakao.maps.open.map.compose.effect
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -6,6 +6,8 @@ import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.DisposableEffectScope
 import androidx.compose.runtime.SideEffect
 import com.kakao.vectormap.KakaoMap
+import com.sonms.kakao.maps.open.map.compose.core.KakaoMapComposable
+import com.sonms.kakao.maps.open.map.compose.core.LocalKakaoMapState
 
 /**
  * 준비된 SDK [KakaoMap] 객체에 직접 접근하는 Composable effect입니다.

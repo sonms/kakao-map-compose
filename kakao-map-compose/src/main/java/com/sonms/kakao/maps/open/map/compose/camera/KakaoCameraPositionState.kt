@@ -1,4 +1,4 @@
-package com.sonms.kakao.maps.open.map.compose
+package com.sonms.kakao.maps.open.map.compose.camera
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -10,19 +10,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.kakao.vectormap.camera.CameraAnimation
 import com.kakao.vectormap.camera.CameraUpdate
+import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
 
 /**
  * 카카오 지도의 카메라 위치와 이동 상태를 관리하는 Compose 상태 홀더입니다.
  *
  * - [position]은 SDK 카메라 이동 이벤트가 끝날 때 자동으로 갱신됩니다.
  * - [move]와 [animateMove]로 프로그래매틱 카메라 이동을 요청할 수 있습니다.
- * - [KakaoMap] composable이 [pendingCameraUpdate]를 소비하여 실제 SDK 호출을 수행합니다.
+ * - [com.sonms.kakao.maps.open.map.compose.core.KakaoMap] composable이 [pendingCameraUpdate]를 소비하여 실제 SDK 호출을 수행합니다.
  *
  * @param position 초기 카메라 위치입니다.
  */
 @Stable
 class KakaoCameraPositionState(
-    position: KakaoCameraPosition = KakaoCameraPosition.Default,
+    position: KakaoCameraPosition = KakaoCameraPosition.Companion.Default,
 ) {
     /**
      * 현재 카메라 위치입니다.
@@ -41,7 +42,7 @@ class KakaoCameraPositionState(
         internal set
 
     /**
-     * [KakaoMap] composable이 소비할 대기 중인 카메라 업데이트입니다.
+     * [com.sonms.kakao.maps.open.map.compose.core.KakaoMap] composable이 소비할 대기 중인 카메라 업데이트입니다.
      */
     internal var pendingCameraUpdate: CameraUpdate? by mutableStateOf(null)
 
@@ -72,6 +73,19 @@ class KakaoCameraPositionState(
     ) {
         pendingAnimation = animation
         pendingCameraUpdate = update
+    }
+
+    /**
+     * 지정한 시간의 기본 애니메이션과 함께 카메라를 이동합니다.
+     *
+     * @param update 이동할 카메라 업데이트입니다.
+     * @param durationMs 애니메이션 시간(ms)입니다.
+     */
+    fun animate(
+        update: CameraUpdate,
+        durationMs: Int = 300,
+    ) {
+        animateMove(update = update, animation = CameraAnimation.from(durationMs))
     }
 
     companion object {

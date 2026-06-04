@@ -1,4 +1,4 @@
-package com.sonms.kakao.maps.open.map.compose
+package com.sonms.kakao.maps.open.map.compose.model
 
 import androidx.compose.runtime.Immutable
 import com.kakao.vectormap.LatLng
