@@ -1,12 +1,14 @@
 package com.sonms.kakao.maps.open.map.compose.core
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composition
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +29,7 @@ import com.kakao.vectormap.label.LabelLayer
 import com.sonms.kakao.maps.open.map.compose.camera.KakaoCameraPosition
 import com.sonms.kakao.maps.open.map.compose.camera.KakaoCameraPositionState
 import com.sonms.kakao.maps.open.map.compose.camera.rememberKakaoCameraPositionState
+import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
 
 internal val LocalKakaoMapState = compositionLocalOf<KakaoMapState?> { null }
 
@@ -42,6 +45,7 @@ internal val LocalKakaoMapState = compositionLocalOf<KakaoMapState?> { null }
  * @param cameraPositionState 카메라 위치와 이동 상태를 관리하는 상태 객체입니다.
  * @param properties 지도 타입, 기본 POI, 지도 오버레이 같은 지도 데이터 성격의 설정입니다.
  * @param uiSettings 나침반, 축척, 제스처 같은 UI 성격의 설정입니다.
+ * @param onPoiClick SDK 기본 POI 클릭 시 호출되는 콜백입니다.
  * @param content 지도 준비 후 실행되는 카카오 지도 전용 오버레이 Composable 영역입니다.
  */
 @Composable
@@ -51,7 +55,8 @@ fun KakaoMap(
     cameraPositionState: KakaoCameraPositionState = rememberKakaoCameraPositionState(),
     properties: KakaoMapProperties = KakaoMapProperties(),
     uiSettings: KakaoMapUiSettings = KakaoMapUiSettings(),
-    content: @KakaoMapComposable @Composable () -> Unit = {},
+    onPoiClick: ((position: KakaoLatLng, layerId: String, poiId: String) -> Unit)? = null,
+    content: @Composable @KakaoMapComposable () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -64,6 +69,7 @@ fun KakaoMap(
     )
 
     val currentCameraPositionState by rememberUpdatedState(cameraPositionState)
+    val currentOnPoiClick by rememberUpdatedState(onPoiClick)
 
     DisposableEffect(lifecycleOwner, mapView) {
         var finished = false
@@ -99,6 +105,22 @@ fun KakaoMap(
                     currentCameraPositionState.position.zoomLevel
 
                 override fun onMapReady(kakaoMap: KakaoMapSdk) {
+                    kakaoMap.setOnPoiClickListener(
+                        object : KakaoMapSdk.OnPoiClickListener {
+                            override fun onPoiClicked(
+                                kakaoMap: KakaoMapSdk,
+                                position: LatLng,
+                                layerId: String,
+                                poiId: String,
+                            ) {
+                                currentOnPoiClick?.invoke(
+                                    KakaoLatLng.from(position),
+                                    layerId,
+                                    poiId,
+                                )
+                            }
+                        },
+                    )
                     kakaoMap.setOnLabelClickListener(
                         object : KakaoMapSdk.OnLabelClickListener {
                             override fun onLabelClicked(
@@ -178,7 +200,21 @@ fun KakaoMap(
             }
         }
         CompositionLocalProvider(LocalKakaoMapState provides state) {
-            content()
+            val parentComposition = rememberCompositionContext()
+            val currentContent by rememberUpdatedState(content)
+
+            val mapComposition = remember(map) {
+                Composition(
+                    KakaoMapApplier(KakaoMapNodeRoot(map, state)),
+                    parentComposition,
+                )
+            }
+            DisposableEffect(map) {
+                onDispose { mapComposition.dispose() }
+            }
+            SideEffect {
+                mapComposition.setContent { currentContent() }
+            }
         }
     }
 }
