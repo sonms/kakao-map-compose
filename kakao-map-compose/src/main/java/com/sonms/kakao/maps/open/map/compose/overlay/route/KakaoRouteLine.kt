@@ -20,8 +20,8 @@ import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
  * 카카오 지도 위에 경로선을 표시하는 Composable입니다.
  *
  * 좌표가 2개 미만이면 SDK RouteLine을 생성하지 않으며, 이후 2개 이상이 되면 자동으로 재생성합니다.
- * [KakaoMapApplier] 기반 서브 컴포지션 안에서만 동작합니다.
- * [KakaoRouteLineLayer] 안에서 호출하면 해당 레이어를 사용하고, 그 외에는 기본 레이어를 사용합니다.
+ * [com.sonms.kakao.maps.open.map.compose.core.KakaoMap]의 content 안에서 선언하면,
+ * 파라미터 변경에 따라 지도 위 경로선이 자동으로 생성, 갱신, 제거됩니다.
  *
  * @param positions 경로선을 구성할 위도/경도 좌표 목록입니다.
  * @param lineWidth 경로선의 선 두께입니다.
@@ -35,6 +35,7 @@ import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
  */
 @Composable
 @KakaoMapComposable
+@Suppress("ComposableTargetMismatch")
 fun KakaoRouteLine(
     positions: List<KakaoLatLng>,
     lineWidth: Float = 12f,
