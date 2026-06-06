@@ -23,6 +23,7 @@ class KakaoMapState {
         internal set
 
     private val labelClickHandlers = mutableMapOf<Label, (Label) -> Boolean>()
+    private var mapContentDisposer: (() -> Unit)? = null
 
     /**
      * 특정 [Label]에 대한 클릭 콜백을 등록합니다.
@@ -57,6 +58,21 @@ class KakaoMapState {
      */
     internal fun clearLabelClickHandlers() {
         labelClickHandlers.clear()
+    }
+
+    internal fun setMapContentDisposer(disposer: () -> Unit) {
+        mapContentDisposer = disposer
+    }
+
+    internal fun clearMapContentDisposer(disposer: () -> Unit) {
+        if (mapContentDisposer === disposer) {
+            mapContentDisposer = null
+        }
+    }
+
+    internal fun disposeMapContent() {
+        mapContentDisposer?.invoke()
+        mapContentDisposer = null
     }
 }
 
