@@ -10,9 +10,9 @@ import com.sonms.kakao.maps.open.map.compose.core.KakaoMapComposable
 import com.sonms.kakao.maps.open.map.compose.core.LabelLayerNode
 
 /**
- * 카카오 지도 위에 커스텀 LabelLayer를 생성하는 컨테이너 Composable입니다.
+ * 여러 [KakaoPoi]를 같은 SDK LabelLayer에 묶는 고급 컨테이너 Composable입니다.
  *
- * [KakaoMapApplier] 기반 서브 컴포지션 안에서만 동작합니다.
+ * 일반적인 마커 표시는 [KakaoPoi]를 직접 선언하면 됩니다.
  * [content] 블록 안에서 호출된 [KakaoPoi]는 이 레이어를 사용합니다.
  * [layerId]가 바뀌면 기존 레이어의 모든 오버레이를 제거하고 새 레이어를 생성합니다.
  *
@@ -22,7 +22,8 @@ import com.sonms.kakao.maps.open.map.compose.core.LabelLayerNode
  */
 @Composable
 @KakaoMapComposable
-fun KakaoLabelLayer(
+@Suppress("ComposableTargetMismatch")
+internal fun KakaoLabelLayer(
     layerId: String,
     zOrder: Int = 1,
     content: @Composable @KakaoMapComposable () -> Unit,

@@ -22,8 +22,8 @@ import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
 /**
  * 카카오 지도 위에 POI(Label)를 표시하는 Composable입니다.
  *
- * [KakaoMapApplier] 기반 서브 컴포지션 안에서만 동작합니다. 지도 SDK의 [Label]을
- * [ComposeNode]로 관리하여 파라미터 변경 시 [PoiNode]의 update 블록이 SDK를 직접 갱신합니다.
+ * [com.sonms.kakao.maps.open.map.compose.core.KakaoMap]의 content 안에서 선언하면,
+ * 파라미터 변경에 따라 지도 위 Label이 자동으로 생성, 갱신, 제거됩니다.
  *
  * @param position POI를 표시할 위도/경도 좌표입니다.
  * @param iconResId POI 아이콘으로 사용할 drawable 리소스 ID입니다.
@@ -36,6 +36,7 @@ import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
  */
 @Composable
 @KakaoMapComposable
+@Suppress("ComposableTargetMismatch")
 fun KakaoPoi(
     position: KakaoLatLng,
     @DrawableRes iconResId: Int = R.drawable.kakao_map_default_marker,
