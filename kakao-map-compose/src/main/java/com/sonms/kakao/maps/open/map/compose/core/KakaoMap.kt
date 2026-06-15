@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composition
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -26,6 +27,8 @@ import com.kakao.vectormap.MapView
 import com.kakao.vectormap.camera.CameraPosition
 import com.kakao.vectormap.label.Label
 import com.kakao.vectormap.label.LabelLayer
+import com.kakao.vectormap.label.LodLabel
+import com.kakao.vectormap.label.LodLabelLayer
 import com.sonms.kakao.maps.open.map.compose.camera.KakaoCameraPosition
 import com.sonms.kakao.maps.open.map.compose.camera.KakaoCameraPositionState
 import com.sonms.kakao.maps.open.map.compose.camera.rememberKakaoCameraPositionState
@@ -83,7 +86,6 @@ fun KakaoMap(
                 currentCameraPositionState.isMoving = false
                 state.disposeMapContent()
                 state.map = null
-                state.clearLabelClickHandlers()
                 mapView.finish()
             }
         }
@@ -94,11 +96,13 @@ fun KakaoMap(
                     currentCameraPositionState.isMoving = false
                     state.map = null
                     state.clearLabelClickHandlers()
+                    state.clearLodLabelClickHandlers()
                 }
                 override fun onMapError(error: Exception) {
                     currentCameraPositionState.isMoving = false
                     state.map = null
                     state.clearLabelClickHandlers()
+                    state.clearLodLabelClickHandlers()
                 }
             },
             object : KakaoMapReadyCallback() {
@@ -132,6 +136,15 @@ fun KakaoMap(
                                 labelLayer: LabelLayer,
                                 label: Label,
                             ): Boolean = state.dispatchLabelClick(label)
+                        },
+                    )
+                    kakaoMap.setOnLodLabelClickListener(
+                        object : KakaoMapSdk.OnLodLabelClickListener {
+                            override fun onLodLabelClicked(
+                                kakaoMap: KakaoMapSdk,
+                                lodLabelLayer: LodLabelLayer,
+                                lodLabel: LodLabel,
+                            ): Boolean = state.dispatchLodLabelClick(lodLabelLayer, lodLabel)
                         },
                     )
                     kakaoMap.setOnCameraMoveStartListener(
@@ -190,17 +203,14 @@ fun KakaoMap(
             onDispose {}
         }
 
+        // composition body에서 읽어야 mutableStateOf 변경 시 재컴포지션이 트리거됨.
+        val moveVersion = cameraPositionState.pendingMoveVersion
         SideEffect {
-            val update = cameraPositionState.pendingCameraUpdate
-            if (update != null) {
-                val animation = cameraPositionState.pendingAnimation
-                if (animation != null) {
-                    map.moveCamera(update, animation)
-                } else {
-                    map.moveCamera(update)
+            if (moveVersion > 0) {
+                cameraPositionState.drainPendingMoves().forEach { (update, animation) ->
+                    if (animation != null) map.moveCamera(update, animation)
+                    else map.moveCamera(update)
                 }
-                cameraPositionState.pendingCameraUpdate = null
-                cameraPositionState.pendingAnimation = null
             }
         }
         CompositionLocalProvider(LocalKakaoMapState provides state) {
@@ -220,6 +230,7 @@ fun KakaoMap(
                         disposed = true
                         mapComposition.dispose()
                         state.clearLabelClickHandlers()
+                        state.clearLodLabelClickHandlers()
                     }
                 }
                 state.setMapContentDisposer(disposeMapContent)
@@ -228,7 +239,7 @@ fun KakaoMap(
                     disposeMapContent()
                 }
             }
-            SideEffect {
+            LaunchedEffect(mapComposition) {
                 mapComposition.setContent { currentContent() }
             }
         }

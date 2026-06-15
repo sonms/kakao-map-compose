@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.label.Label
+import com.kakao.vectormap.label.LodLabel
+import com.kakao.vectormap.label.LodLabelLayer
 
 /**
  * [KakaoMap] Composable이 생성한 카카오 지도 SDK 객체와 오버레이 이벤트 상태를 보관합니다.
@@ -23,6 +25,7 @@ class KakaoMapState {
         internal set
 
     private val labelClickHandlers = mutableMapOf<Label, (Label) -> Boolean>()
+    private val lodLabelClickHandlers = mutableMapOf<LodLabelLayer, (LodLabel) -> Boolean>()
     private var mapContentDisposer: (() -> Unit)? = null
 
     /**
@@ -58,6 +61,21 @@ class KakaoMapState {
      */
     internal fun clearLabelClickHandlers() {
         labelClickHandlers.clear()
+    }
+
+    internal fun registerLodLabelClickHandler(layer: LodLabelLayer, handler: (LodLabel) -> Boolean) {
+        lodLabelClickHandlers[layer] = handler
+    }
+
+    internal fun unregisterLodLabelClickHandler(layer: LodLabelLayer) {
+        lodLabelClickHandlers.remove(layer)
+    }
+
+    internal fun dispatchLodLabelClick(layer: LodLabelLayer, label: LodLabel): Boolean =
+        lodLabelClickHandlers[layer]?.invoke(label) ?: false
+
+    internal fun clearLodLabelClickHandlers() {
+        lodLabelClickHandlers.clear()
     }
 
     internal fun setMapContentDisposer(disposer: () -> Unit) {

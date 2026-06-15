@@ -40,6 +40,7 @@ internal fun KakaoRouteLineLayer(
                 RouteLineLayerNode(
                     routeLineLayer = layer,
                     routeLineManager = routeLineManager,
+                    state = mapApplier.mapRoot.state,
                 )
             },
             update = {},

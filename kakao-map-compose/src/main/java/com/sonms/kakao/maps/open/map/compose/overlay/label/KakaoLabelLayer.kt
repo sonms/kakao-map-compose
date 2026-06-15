@@ -42,6 +42,7 @@ internal fun KakaoLabelLayer(
                 LabelLayerNode(
                     labelLayer = layer,
                     labelManager = labelManager,
+                    state = mapApplier.mapRoot.state,
                 )
             },
             update = {

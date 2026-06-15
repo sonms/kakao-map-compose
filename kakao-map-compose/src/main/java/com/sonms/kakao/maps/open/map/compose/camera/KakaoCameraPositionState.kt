@@ -17,7 +17,8 @@ import com.sonms.kakao.maps.open.map.compose.model.KakaoLatLng
  *
  * - [position]은 SDK 카메라 이동 이벤트가 끝날 때 자동으로 갱신됩니다.
  * - [move]와 [animateMove]로 프로그래매틱 카메라 이동을 요청할 수 있습니다.
- * - [com.sonms.kakao.maps.open.map.compose.core.KakaoMap] composable이 [pendingCameraUpdate]를 소비하여 실제 SDK 호출을 수행합니다.
+ * - 같은 프레임 내에 여러 번 요청해도 내부 큐에 순서대로 누적되며, 다음 렌더 프레임에 일괄 처리됩니다.
+ * - [com.sonms.kakao.maps.open.map.compose.core.KakaoMap] composable이 큐를 소비하여 실제 SDK 호출을 수행합니다.
  *
  * @param position 초기 카메라 위치입니다.
  */
@@ -41,15 +42,19 @@ class KakaoCameraPositionState(
     var isMoving: Boolean by mutableStateOf(false)
         internal set
 
-    /**
-     * [com.sonms.kakao.maps.open.map.compose.core.KakaoMap] composable이 소비할 대기 중인 카메라 업데이트입니다.
-     */
-    internal var pendingCameraUpdate: CameraUpdate? by mutableStateOf(null)
+    // 같은 프레임 내 여러 번 호출해도 큐에 누적되므로 앞선 요청이 유실되지 않습니다.
+    // MAX_PENDING_MOVES를 초과하면 가장 오래된 요청을 버려 메모리 무한 증가를 방지합니다.
+    private val _pendingMoves: ArrayDeque<Pair<CameraUpdate, CameraAnimation?>> = ArrayDeque()
 
-    /**
-     * [pendingCameraUpdate]에 함께 적용할 애니메이션입니다. null이면 즉시 이동합니다.
-     */
-    internal var pendingAnimation: CameraAnimation? = null
+    // SideEffect 재실행 트리거. 큐에 항목을 추가할 때마다 증가시켜 재컴포지션을 유발합니다.
+    internal var pendingMoveVersion: Int by mutableStateOf(0)
+        private set
+
+    internal fun drainPendingMoves(): List<Pair<CameraUpdate, CameraAnimation?>> {
+        val snapshot = _pendingMoves.toList()
+        _pendingMoves.clear()
+        return snapshot
+    }
 
     /**
      * 애니메이션 없이 카메라를 즉시 이동합니다.
@@ -57,8 +62,9 @@ class KakaoCameraPositionState(
      * @param update 이동할 카메라 업데이트입니다. [com.kakao.vectormap.camera.CameraUpdateFactory]로 생성합니다.
      */
     fun move(update: CameraUpdate) {
-        pendingAnimation = null
-        pendingCameraUpdate = update
+        if (_pendingMoves.size >= MAX_PENDING_MOVES) _pendingMoves.removeFirst()
+        _pendingMoves.addLast(update to null)
+        pendingMoveVersion++
     }
 
     /**
@@ -71,8 +77,9 @@ class KakaoCameraPositionState(
         update: CameraUpdate,
         animation: CameraAnimation = CameraAnimation.from(300),
     ) {
-        pendingAnimation = animation
-        pendingCameraUpdate = update
+        if (_pendingMoves.size >= MAX_PENDING_MOVES) _pendingMoves.removeFirst()
+        _pendingMoves.addLast(update to animation)
+        pendingMoveVersion++
     }
 
     /**
@@ -89,6 +96,8 @@ class KakaoCameraPositionState(
     }
 
     companion object {
+        private const val MAX_PENDING_MOVES = 16
+
         val Saver: Saver<KakaoCameraPositionState, *> = listSaver(
             save = {
                 listOf(
